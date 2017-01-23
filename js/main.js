@@ -1,111 +1,57 @@
 /***
- * Pagination and content filter
+ * Project 02 - Pagination and content filter
  * Problem: site displays all users, only 10 should be displayed at once. No search functionality.
  * Solution: limit the number of students displayed at once to 10 and add pagination links below the list. Add search.
  */
 
+// Consider:
 
-// Setting variables, selecting DOM elements
-var activePage = 1; // set activePage to 1 as a default, when page loads first
-var pageDiv = document.getElementsByClassName('page')[0]; // selecting the page-level parent element
-var studentList = document.querySelectorAll('.student-item'); // list of all student entries
-var totalNumberOfStudents = studentList.length;
-var numberOfUsersInPool = totalNumberOfStudents;// all students in the list
-//var totalNumberOfPages = Math.floor(totalNumberOfStudents / 10) + 1; // Total pages needed to display all students
+    // create element function
+    // delete search field after search
 
-console.log(studentList);
+//Selecting DOM elements
+const pageDiv = document.getElementsByClassName('page')[0];
+const paginationDiv = document.createElement('div');
+paginationDiv.className = 'pagination';
+const paginationUL = document.createElement('ul');
+paginationUL.className = 'pagination-list';
+paginationDiv.appendChild(paginationUL);
+pageDiv.appendChild(paginationDiv);
 
-/*
-    P A G I N A T I O N
- */
+//List of student-item elements and setting up a list of indexes
+const studentList = document.getElementsByClassName('student-item');
+let indexOfStudensToDisplay = [];
+for (let i = 0; i < studentList.length; i++) {
+    indexOfStudensToDisplay.push(i);
+}
 
 /**
- * Calculates first and last student to display based on activePage, sets the 'display' property of
- * studentList elements accordingly
+ * Creates pagination links. Active page is used by the event listener
+ * @param numberOfStudentsToDisplay
  * @param activePage
  */
+const createPaginationLI = function (numberOfStudentsToDisplay, activePage) {
+    let numberOfLinks = Math.ceil(numberOfStudentsToDisplay / 10);
+    if (numberOfLinks !== 1) {
+        for (var i = 0; i < numberOfLinks; i++) {
+            const li = document.createElement('li');
+            const link = document.createElement('a');
+            link.setAttribute('href', '#');
+            link.textContent = i + 1;
 
-var setStudentsToDisplayOnPage = function (activePage) {
-    let firstStudentToDisplay = (activePage-1)*10;
-    let lastStudentToDisplay = activePage*10;
-
-    for (var i = 0; i < studentList.length; i++ ) {
-        if (i >= firstStudentToDisplay  && i < lastStudentToDisplay) {
-            studentList[i].style.display = 'block';
-        } else {
-            studentList[i].style.display = 'none';
+            //adding click listener to the links
+            link.addEventListener('click', limitStudentsDisplay);
+            if (i === activePage-1) {
+                link.className = 'active';
+            }
+            li.appendChild(link);
+            paginationUL.appendChild(li);
         }
     }
 }
 
 /**
- * Creates pagination links totalNumberOfPages times, sets attributes, appends new elements to the DOM
- * @param totalNumberOfPages
- * @param activePage
- */
-var createPaginationLinks = function (numberOfUsersInPool, activePage){
-
-    var totalNumberOfPages = Math.floor(numberOfUsersInPool / 10) + 1; // Nr of pages needed to display all students
-    console.log(totalNumberOfPages);
-    //selecting parent element, creating new elements
-    var paginationContainer = document.createElement('div');
-    var ul = document.createElement('ul');
-
-    paginationContainer.className = 'pagination';
-
-    //creating <li> and <a> elements
-    for (var i = 1; i <= totalNumberOfPages; i++) {
-        var listItem = document.createElement('li');
-        var linkItem = document.createElement('a');
-        linkItem.innerText = i;
-        linkItem.setAttribute('href', '#');
-
-        //adding click listener to the links
-        linkItem.addEventListener('click', resetStudentsToDisplay);
-        if (i === activePage) {
-            linkItem.className = 'active';
-        }
-        listItem.appendChild(linkItem);
-        ul.appendChild(listItem);
-    }
-    paginationContainer.appendChild(ul);
-    pageDiv.appendChild(paginationContainer);
-}
-
-/**
- * Helper function to reset the 'active' class. Removes 'active' class from previous link, attaches to the clicked one.
- * @param activePage
- */
-var resetActiveClassOfPaginationElements = function(activePage) {
-
-    var oldActivePageLink = document.querySelector('a.active');
-    oldActivePageLink.classList.remove('active');
-    var newActivePageLink = document.querySelectorAll('.pagination ul li a')[activePage - 1];
-    newActivePageLink.className = 'active';
-}
-
-/**
- *  Event handler triggered when pagination link is clicked. Resets students to display, resets active pagination link.
- */
-var resetStudentsToDisplay = function (){
-    activePage = this.innerText;
-    var studentsToDisplay = [];
-    console.log(Array.isArray(studentList));
-
-    console.log(studentsToDisplay);
-
-    setStudentsToDisplayOnPage(activePage);
-    resetActiveClassOfPaginationElements(activePage);
-    checkIfNoResultsPresentOnPage();
-}
-
-
-/*
-    S E A R C H
-*/
-
-/**
- * Creates page elements for search component
+ * Creates the search component
  */
 var createSearchFunctionality = function (){
     var searchContainer = document.createElement('div');
@@ -117,7 +63,7 @@ var createSearchFunctionality = function (){
     searchContainer.className = 'student-search';
 
     searchButton.innerText = 'Search';
-    searchButton.addEventListener('click', searchStudents);
+    searchButton.addEventListener('click', limitStudentsToDisplayWithSearch);
 
     searchContainer.appendChild(searchField);
     searchContainer.appendChild(searchButton);
@@ -129,60 +75,151 @@ var createSearchFunctionality = function (){
     parentDiv.insertBefore(searchContainer, studentsTitle);
 }
 
-
 /**
- * Event handler triggered when search button is clicked
+ * Creates the 'No result' message
  */
-var searchStudents = function () {
-    var searchFieldValue = document.querySelector('input[type=text]').value.toLowerCase();
-    var studentsDisplayed = [];
-
-    checkIfNoResultsPresentOnPage();
-
-    // match searchFieldValue with students, set display accordingly
-    if (searchFieldValue === '') {
-        setStudentsToDisplayOnPage(1);
-    } else {
-        for (var i = 0; i < studentList.length; i++) {
-            var h3 = studentList[i].getElementsByTagName('h3')[0];
-            if (h3.innerHTML.indexOf(searchFieldValue) !== -1) {
-                studentList[i].style.display = 'block';
-                studentsDisplayed.push(studentList[i]);
-            } else {
-                studentList[i].style.display = 'none';
-            }
-        }
-        // display 'No results'
-        displayNoResults(studentsDisplayed, searchFieldValue);
-    }
-    console.log(numberOfUsersInPool);
-
-    // deleting search term
-    document.querySelector('input[type=text]').value = '';
+const createNoResultsMessage = function () {
+    let message = document.createElement('p');
+    message.className = 'no-results';
+    message.innerText = "No results. Run an empty search to display all students.";
+    document.querySelector('.student-list').appendChild(message);
 }
 
+
 /**
- *  Removes 'No results' message if already present on the page
+ * Event handler for the search component
  */
-var checkIfNoResultsPresentOnPage = function() {
-    if(document.querySelector('.no-results')) {
-        document.querySelector('.no-results').parentNode.removeChild(document.querySelector('.no-results'));
+const limitStudentsToDisplayWithSearch = function () {
+    //removes pagination links
+    let paginationUL = document.getElementsByClassName('pagination-list')[0];
+    while (paginationUL.firstChild) {
+        paginationUL.removeChild(paginationUL.firstChild);
     }
+
+    let searchFieldValue = document.querySelector('input[type=text]').value.toLowerCase();
+    console.log('searchfield: ' + searchFieldValue);
+
+    //If the search field was empty clear indexOfStudensToDisplay, add all students and...
+    if (searchFieldValue === '') {
+        activePage = 1;
+        indexOfStudensToDisplay.splice(0, indexOfStudensToDisplay.length);
+        for (let i = 0; i < studentList.length; i++) {
+            indexOfStudensToDisplay.push(i);
+        }
+
+        //../display the first 10
+        for (let i = 0; i < indexOfStudensToDisplay.length; i++) {
+            let index = indexOfStudensToDisplay[i];
+            if (i >= 0 && i < 10){
+                studentList[index].style.display = '';
+            } else {
+                studentList[index].style.display = 'none';
+            }
+        }
+
+        hideNoResultsMessage();
+
+    // otherwise display students with matching name and set pagination accordingly
+    } else {
+        indexOfStudensToDisplay.splice(0, indexOfStudensToDisplay.length);
+        console.log('indexlist ' + indexOfStudensToDisplay.length);
+        for (let i = 0; i < studentList.length; i++) {
+               studentList[i].style.display = 'none';
+        }
+        for (let i = 0; i < studentList.length; i++) {
+            var h3 = studentList[i].getElementsByTagName('h3')[0];
+            if (h3.innerHTML.indexOf(searchFieldValue) !== -1) {
+                console.log('inside if ' + h3.innerHTML);
+                studentList[i].style.display = '';
+                indexOfStudensToDisplay.push(i);
+            }
+        }
+
+    }
+
+
+    //display the first 10 students from the searched group
+    for (let i = 0; i < indexOfStudensToDisplay.length; i++) {
+        let index = indexOfStudensToDisplay[i];
+        if (i >= 0 && i < 10){
+            studentList[index].style.display = '';
+        } else {
+            studentList[index].style.display = 'none';
+        }
+    }
+    //reset the No results message
+    if (indexOfStudensToDisplay.length === 0) {
+        showNoResultsMessage();
+    } else {
+        hideNoResultsMessage();
+    }
+
+    // clear search field
+
+    //recreate the right number of pagination links
+    createPaginationLI(indexOfStudensToDisplay.length, 1);
+}
+
+
+/**
+ * Event handler for pagination links
+ */
+const limitStudentsDisplay = function () {
+    activePage = this.innerText;
+
+    //set active page
+    let lis = document.getElementsByClassName('pagination-list')[0].children;
+    for (let i = 0; i < lis.length; i++) {
+        if (lis[i].children[0].textContent === activePage) {
+            lis[i].children[0].className = 'active';
+        } else {
+            lis[i].children[0].className = '';
+        }
+    }
+
+    //hide all students
+    for (let i = 0; i < studentList.length; i++) {
+        studentList[i].style.display = 'none';
+    }
+
+    //limit the number of students to display
+    for (let i = 0; i < indexOfStudensToDisplay.length; i++) {
+        let index = indexOfStudensToDisplay[i];
+        if (i >= (activePage-1) * 10 && i < activePage * 10){
+            studentList[index].style.display = '';
+        }
+    }
+
+    // hide no results message
+    hideNoResultsMessage();
 }
 
 /**
  *  Displays 'No results' message
  */
-var displayNoResults = function (studentsDisplayed, searchFieldValue) {
-    if(studentsDisplayed.length < 1) {
-        var message = document.createElement('p');
-        message.className = 'no-results';
-        message.innerText = "No results for '" + searchFieldValue + "'";
-        document.querySelector('.student-list').appendChild(message);
-    }
+const showNoResultsMessage = function () {
+    let message = document.querySelector('.no-results');
+    message.style.display = '';
+}
+
+/**
+ * Hides 'No results' message
+ */
+const hideNoResultsMessage = function () {
+    let message = document.querySelector('.no-results');
+    message.style.display = 'none';
 }
 
 
-    setStudentsToDisplayOnPage(activePage);
-    createPaginationLinks(numberOfUsersInPool, activePage);
-    createSearchFunctionality();
+// Initial setup: show the first ten students, then create pagination, search component, message (and hide it)
+for (let i = 0; i < studentList.length; i++) {
+    if (i >= 0 && i < 10){
+        studentList[i].style.display = '';
+    } else {
+        studentList[i].style.display = 'none';
+    }
+}
+createPaginationLI(indexOfStudensToDisplay.length, 1);
+createSearchFunctionality();
+createNoResultsMessage();
+hideNoResultsMessage();
