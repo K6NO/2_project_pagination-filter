@@ -4,11 +4,6 @@
  * Solution: limit the number of students displayed at once to 10 and add pagination links below the list. Add search.
  */
 
-// Consider:
-
-    // create element function
-    // delete search field after search
-
 //Selecting DOM elements
 const pageDiv = document.getElementsByClassName('page')[0];
 const paginationDiv = document.createElement('div');
@@ -81,7 +76,7 @@ var createSearchFunctionality = function (){
 const createNoResultsMessage = function () {
     let message = document.createElement('p');
     message.className = 'no-results';
-    message.innerText = "No results. Run an empty search to display all students.";
+    message.innerText = "No results. Hit 'Reset' for new search!";
     document.querySelector('.student-list').appendChild(message);
 }
 
@@ -90,6 +85,10 @@ const createNoResultsMessage = function () {
  * Event handler for the search component
  */
 const limitStudentsToDisplayWithSearch = function () {
+    //switches button text back to normal
+    document.querySelector('button').innerText = 'Search';
+
+
     //removes pagination links
     let paginationUL = document.getElementsByClassName('pagination-list')[0];
     while (paginationUL.firstChild) {
@@ -97,17 +96,16 @@ const limitStudentsToDisplayWithSearch = function () {
     }
 
     let searchFieldValue = document.querySelector('input[type=text]').value.toLowerCase();
-    console.log('searchfield: ' + searchFieldValue);
 
     //If the search field was empty clear indexOfStudensToDisplay, add all students and...
     if (searchFieldValue === '') {
-        activePage = 1;
+        let activePage = 1;
         indexOfStudensToDisplay.splice(0, indexOfStudensToDisplay.length);
         for (let i = 0; i < studentList.length; i++) {
             indexOfStudensToDisplay.push(i);
         }
 
-        //../display the first 10
+        //...display the first 10
         for (let i = 0; i < indexOfStudensToDisplay.length; i++) {
             let index = indexOfStudensToDisplay[i];
             if (i >= 0 && i < 10){
@@ -117,24 +115,23 @@ const limitStudentsToDisplayWithSearch = function () {
             }
         }
 
+        document.querySelector('input[type=text]').value = '';
         hideNoResultsMessage();
 
     // otherwise display students with matching name and set pagination accordingly
     } else {
         indexOfStudensToDisplay.splice(0, indexOfStudensToDisplay.length);
-        console.log('indexlist ' + indexOfStudensToDisplay.length);
         for (let i = 0; i < studentList.length; i++) {
                studentList[i].style.display = 'none';
         }
         for (let i = 0; i < studentList.length; i++) {
             var h3 = studentList[i].getElementsByTagName('h3')[0];
             if (h3.innerHTML.indexOf(searchFieldValue) !== -1) {
-                console.log('inside if ' + h3.innerHTML);
                 studentList[i].style.display = '';
                 indexOfStudensToDisplay.push(i);
             }
         }
-
+        document.querySelector('input[type=text]').value = '';
     }
 
 
@@ -150,6 +147,7 @@ const limitStudentsToDisplayWithSearch = function () {
     //reset the No results message
     if (indexOfStudensToDisplay.length === 0) {
         showNoResultsMessage();
+        document.querySelector('button').innerText = 'Reset';
     } else {
         hideNoResultsMessage();
     }
@@ -165,7 +163,7 @@ const limitStudentsToDisplayWithSearch = function () {
  * Event handler for pagination links
  */
 const limitStudentsDisplay = function () {
-    activePage = this.innerText;
+    let activePage = this.innerText;
 
     //set active page
     let lis = document.getElementsByClassName('pagination-list')[0].children;
