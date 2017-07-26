@@ -1,9 +1,10 @@
-# Treehouse Pagination And Content Filter Project
+# Treehouse Full Stack Javascript Techdegree
+### Project 2 - Pagination And Content Filter Project
 
-In this project, you'll enhance the usability of a web page that has too much information. To make it easier to find information and read the page, you'll use progressive enhancement to add pagination.
+Enhance the usability of a web page by adding pagination.
 
-The page includes a list of 54 students. You need to add programming to display 10 students per page, and add buttons to jump between the lists of 10 students.
+* Display 10 records per page, add buttons to jump between the lists of records.
+* Add a search bar to let users search the list of records for a particular name.
+* Works for any number of records.
 
-Your solution should work for any number of student listings, whether there were 5, 25, 55 or 100 student listings.
 
-Optionally you can add a search bar to let users search the list of students for a particular student or students.
